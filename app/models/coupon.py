@@ -10,51 +10,51 @@ from app.models.url import Url
 
 # 优惠卷表写图片表的中间表
 coupon_images = Table(
-    "coupon_images",
-    Base.metadata,
-    Column("coupon_id", Integer, ForeignKey("coupon.id"), nullable=False, primary_key=True),
-    Column("image_id", Integer, ForeignKey("images.id"), nullable=False, primary_key=True)
+	"coupon_images",
+	Base.metadata,
+	Column("coupon_id", Integer, ForeignKey("coupon.id"), nullable=False, primary_key=True),
+	Column("image_id", Integer, ForeignKey("images.id"), nullable=False, primary_key=True)
 )
 
-class Coupon(Base):
 
+class Coupon(Base):
 	id = Column(Integer, primary_key=True)
 	# 淘宝后台一级类目
-	category_id = Column(Integer, nullable = False)
+	category_id = Column(Integer, nullable=False)
 	# 商品ID
-	num_iid = Column(BIGINT, nullable = False)
+	num_iid = Column(BIGINT, nullable=False)
 	# 商家ID，在seller表中的ID
 	seller_id = Column(Integer, ForeignKey('seller.id'))
 	# 商品标题
-	title = Column(String(64), nullable = False)
+	title = Column(String(64), nullable=False)
 	# 折扣价（原价）
-	zk_final_price = Column(Integer, nullable = False)
+	zk_final_price = Column(Integer, nullable=False)
 	# 卷价格
-	coupon_price = Column(Integer, nullable = False)
+	coupon_price = Column(Integer, nullable=False)
 	# 优惠券面额信息
-	coupon_info = Column(String(64), nullable = False)
+	coupon_info = Column(String(64), nullable=False)
 	# 佣金比率(%)
-	commission_rate = Column(Integer, nullable = False)
+	commission_rate = Column(Integer, nullable=False)
 	# 30天销量
-	volume = Column(Integer, nullable = False)
+	volume = Column(Integer, nullable=False)
 	# 商品主图
-	pict_url_id = Column(Integer, ForeignKey('images.id'), nullable = False)
+	pict_url_id = Column(Integer, ForeignKey('images.id'), nullable=False)
 	# 淘口令
-	token = Column(String(64), nullable = False)
+	token = Column(String(64), nullable=False)
 	# 商品详情页链接地址
 	item_url_id = Column(Integer, ForeignKey('url.id'))
 	# 商品优惠券推广链接
 	click_url_id = Column(Integer, ForeignKey('url.id'))
 	# 优惠券总量
-	total_count = Column(Integer, nullable = False)
+	total_count = Column(Integer, nullable=False)
 	# 优惠券剩余量
-	remain_count = Column(Integer, nullable = False)
+	remain_count = Column(Integer, nullable=False)
 	# 商品摘要
 	description_id = Column(Integer, ForeignKey('description.id'))
 	# 优惠券开始时间
-	start_time = Column(Integer, nullable = False)
+	start_time = Column(Integer, nullable=False)
 	# 优惠券结束时间
-	end_time = Column(Integer, nullable = False)
+	end_time = Column(Integer, nullable=False)
 	# 关联images模型
 	pict_url = relationship('Images', foreign_keys=[pict_url_id])
 	small_pic = relationship('Images', secondary=coupon_images)
@@ -82,7 +82,7 @@ class Coupon(Base):
 		self.end_time = toNumTime(data['coupon_end_time'])
 
 	def keys(self):
-		return ['id', 'title', 'pict_url', 'num_iid', 'title']
+		return ['id', 'title', 'pict_url', 'num_iid', 'title', 'small_pic', 'zk_final_price', 'coupon_price']
 
 	@staticmethod
 	def create(data):
