@@ -23,7 +23,7 @@ class Quality(Base):
 
     @orm.reconstructor
     def __init__(self):
-        self.fields = ['id', 'title', 'user_id', 'coupon']
+        self.fields = ['id', 'title', 'user_id', 'coupon', 'create_time']
 
     # def keys(self):
     #     return ['id', 'title', 'coupon']
