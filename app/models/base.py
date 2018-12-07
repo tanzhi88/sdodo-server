@@ -3,15 +3,10 @@
 """
 from app.libs.error_code import NotFound
 
-__author__ = '七月'
-
-"""
- Created by 七月 on 2018-3-11.
-"""
 from datetime import datetime
 
 from flask_sqlalchemy import SQLAlchemy as _SQLAlchemy, BaseQuery
-from sqlalchemy import inspect, Column, Integer, SmallInteger
+from sqlalchemy import Column, Integer, SmallInteger
 from contextlib import contextmanager
 
 
@@ -57,6 +52,11 @@ class Base(db.Model):
         self.create_time = int(datetime.now().timestamp())
 
     def __getitem__(self, item):
+        """
+        如果在类中定义了__getitem__()方法，那么他的实例对象（假设为P）就可以这样P[key]取值。
+        当实例对象做P[key]运算时，就会调用类中的__getitem__()方法
+        """
+        # getattr()函数用于返回一个对象属性值
         return getattr(self, item)
 
     @property
@@ -68,6 +68,7 @@ class Base(db.Model):
 
     def set_attrs(self, attrs_dict):
         for key, value in attrs_dict.items():
+            # hasattr()函数用于判断是否包含对应的属性
             if hasattr(self, key) and key != 'id':
                 setattr(self, key, value)
 

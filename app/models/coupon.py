@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, BIGINT, ForeignKey, Table, orm
+from sqlalchemy import Column, Integer, String, BIGINT, ForeignKey, Table, orm, Float
 from sqlalchemy.orm import relationship
 
 from app.libs.mytime import toNumTime
@@ -12,9 +12,18 @@ from app.models.url import Url
 coupon_images = Table(
 	"coupon_images",
 	Base.metadata,
-	Column("coupon_id", Integer, ForeignKey("coupon.id"), nullable=False, primary_key=True),
-	Column("image_id", Integer, ForeignKey("images.id"), nullable=False, primary_key=True)
-)
+	Column(
+		"coupon_id",
+		Integer,
+		ForeignKey("coupon.id"),
+		nullable=False,
+		primary_key=True),
+	Column(
+		"image_id",
+		Integer,
+		ForeignKey("images.id"),
+		nullable=False,
+		primary_key=True))
 
 
 class Coupon(Base):
@@ -28,13 +37,13 @@ class Coupon(Base):
 	# 商品标题
 	title = Column(String(64), nullable=False)
 	# 折扣价（原价）
-	zk_final_price = Column(Integer, nullable=False)
+	zk_final_price = Column(Float, nullable=False)
 	# 卷价格
-	coupon_price = Column(Integer, nullable=False)
+	coupon_price = Column(Float, nullable=False)
 	# 优惠券面额信息
 	coupon_info = Column(String(64), nullable=False)
 	# 佣金比率(%)
-	commission_rate = Column(Integer, nullable=False)
+	commission_rate = Column(Float, nullable=False)
 	# 30天销量
 	volume = Column(Integer, nullable=False)
 	# 商品主图
@@ -59,34 +68,35 @@ class Coupon(Base):
 	pict_url = relationship('Images', foreign_keys=[pict_url_id])
 	small_pic = relationship('Images', secondary=coupon_images)
 	# 关联seller模型
-	seller = relationship('Seller')
+	seller = relationship('Seller', lazy=True)
 	# 关联description模型
 	description = relationship('Description')
 	# 关联url模型
 	click_url = relationship('Url', foreign_keys=[click_url_id])
 	item_url = relationship('Url', foreign_keys=[item_url_id])
 
-	def __init__(self, data):
-		self.category_id = data['category']
-		self.num_iid = data['num_iid']
-		self.title = data['title']
-		self.zk_final_price = data['zk_final_price']
-		self.coupon_price = data['coupon_price']
-		self.coupon_info = data['coupon_info']
-		self.commission_rate = data['commission_rate']
-		self.volume = data['volume']
-		self.token = data['token']
-		self.total_count = data['coupon_total_count']
-		self.remain_count = data['coupon_remain_count']
-		self.start_time = toNumTime(data['coupon_start_time'])
-		self.end_time = toNumTime(data['coupon_end_time'])
-
-	def keys(self):
-		return ['id', 'title', 'pict_url', 'num_iid', 'title', 'small_pic', 'zk_final_price', 'coupon_price']
+	@orm.reconstructor
+	def __init__(self):
+		self.fields = [
+			'id',
+			'title',
+			'pict_url',
+			'num_iid',
+			'small_pic',
+			'zk_final_price',
+			'coupon_price',
+			'total_count',
+			'remain_count',
+			'volume',
+			'commission_rate',
+			'start_time',
+			'end_time',
+			'seller'
+		]
 
 	@staticmethod
 	def create(data):
-		''' 创建一个优惠卷 '''
+		""" 创建一个优惠卷 """
 		with db.auto_commit():
 			# 先写入url表
 			click_url = Url(data['coupon_click_url'])
@@ -100,7 +110,20 @@ class Coupon(Base):
 			# 写入商品摘要
 			description = Description(data['item_description'])
 			# 写入优惠卷信息
-			coupon = Coupon(data)
+			coupon = Coupon()
+			coupon.category_id = data['category']
+			coupon.num_iid = data['num_iid']
+			coupon.title = data['title']
+			coupon.zk_final_price = data['zk_final_price']
+			coupon.coupon_price = data['coupon_price']
+			coupon.coupon_info = data['coupon_info']
+			coupon.commission_rate = data['commission_rate']
+			coupon.volume = data['volume']
+			coupon.token = data['token']
+			coupon.total_count = data['coupon_total_count']
+			coupon.remain_count = data['coupon_remain_count']
+			coupon.start_time = toNumTime(data['coupon_start_time'])
+			coupon.end_time = toNumTime(data['coupon_end_time'])
 			# 将url进行关联
 			coupon.click_url = click_url
 			coupon.item_url = item_url
@@ -108,9 +131,14 @@ class Coupon(Base):
 			coupon.small_pic = small_images_obj
 			coupon.description = description
 			# 写入商家信息,如果商家信息不存在则进行新增
-			seller = Seller.query.filter_by(seller_id=data['seller_id']).first()
-			if seller == None:
-				seller = Seller(data['seller_id'], data['nick'], data['shop_title'], data['user_type'])
+			seller = Seller.query.filter_by(
+				seller_id=data['seller_id']).first()
+			if seller is None:
+				seller = Seller(
+					data['seller_id'],
+					data['nick'],
+					data['shop_title'],
+					data['user_type'])
 				coupon.seller = seller
 			else:
 				coupon.seller_id = seller.id
@@ -121,7 +149,7 @@ class Coupon(Base):
 		err_list = []
 		ok_list = []
 		for data in datas:
-			if (data['token'] == '') | (data['token'] == None):
+			if (data['token'] == '') | (data['token'] is None) | ('small_images' not in data):
 				err_list.append(data['num_iid'])
 				continue
 			# 查找每条记录是否已经存在
