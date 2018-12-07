@@ -8,6 +8,12 @@ from app.models.user import User
 
 api = Redprint('user')
 
+@api.route('/init', methods=['PUT'])
+def init():
+	data = request.json
+	User.init_super(data['nickname'], data['account'], data['secret'])
+	return Success()
+
 
 # 获取用户(管理员可访问)
 @api.route('/<int:uid>')
