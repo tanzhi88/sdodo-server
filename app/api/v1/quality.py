@@ -13,18 +13,24 @@ api = Redprint('quality')
 @api.route('')
 @auth.login_required
 def get_quality_list():
-	''' 获取精品库列表 '''
-	qualitys = Quality.query.filter_by(
-		user_id=g.user.uid).order_by(
-		Quality.id.desc()).all()
-	return jsonify(qualitys)
+	""" 获取精品库列表 """
+	page = request.args.get('page', 1, type=int)
+	size = request.args.get('size', 20, type=int)
+	quality_list = Quality.quality_all(page, size)
+	return jsonify(quality_list)
 
 
 @api.route('/<int:id>')
 @auth.login_required
 def get_coupon_by_quality(id):
-	''' 获取一个精品库里的商品 '''
-	quality = Quality.query.filter_by(user_id=g.user.uid, id=id).first_or_404()
+	"""
+	获取一个精品库里的商品
+	:param id:
+	:return:
+	"""
+	page = request.args.get('page', 1, type=int)
+	size = request.args.get('size', 20, type=int)
+	quality = Quality.quality_get(id, page, size)
 	return jsonify(quality)
 
 
@@ -51,16 +57,18 @@ def save_quality(id):
 def put_item_in_quality():
 	''' 选产品入库 '''
 	data = request.json
-	# 先检查是否存在精品库
-	quality = Quality.query.filter_by(id=data['quality_id']).first_or_404()
-
-	# 将商品入库，并返回成功入库的商品的num_iid，在result['ok']中
-	result = Coupon.create_all(data['coupons'])
-	# 查询出所有num_iid的商品，加入到quality中再提交
-	coupons = Coupon.query.filter(Coupon.num_iid.in_(result['ok'])).all()
-	with db.auto_commit():
-		quality.coupon = coupons
-		db.session.add(quality)
+	a = Quality.put_item_in_quality(data['quality_id'], data['coupons'])
+	# return '1'
+	# # 先检查是否存在精品库
+	# quality = Quality.query.filter_by(id=data['quality_id']).first_or_404()
+	#
+	# # 将商品入库，并返回成功入库的商品的num_iid，在result['ok']中
+	# result = Coupon.create_all(data['coupons'])
+	# # 查询出所有num_iid的商品，加入到quality中再提交
+	# coupons = Coupon.query.filter(Coupon.num_iid.in_(result['ok'])).all()
+	# with db.auto_commit():
+	# 	quality.r_coupon.add(coupons)
+	# 	db.session.add(quality)
 
 	return Success()
 
@@ -76,7 +84,7 @@ def put_item_out_quality():
 	# 查找出
 	coupons = Coupon.query.filter(Coupon.id.in_(data['coupon_id'])).all()
 	with db.auto_commit():
-		[quality.coupon.remove(coupon) for coupon in coupons]
+		[quality.r_coupon.remove(coupon) for coupon in coupons]
 	return Success()
 
 
@@ -88,6 +96,7 @@ def del_quality(id):
 		if user.scope == 'SuperScope':
 			quality = Quality.query.get_or_404(id)
 		else:
-			quality = Quality.query.filter_by(id=id, user_id=user.uid).first_or_404()
+			quality = Quality.query.filter_by(
+				id=id, user_id=user.uid).first_or_404()
 		quality.delete()
 	return DeleteSuccess()
