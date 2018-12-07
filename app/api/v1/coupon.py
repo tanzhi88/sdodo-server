@@ -8,25 +8,39 @@ from app.models.coupon import Coupon
 
 api = Redprint('coupon')
 
+
 # 从淘宝获取优惠劵列表
 @api.route('')
 @auth.login_required
 def get_coupon_by_tb():
-    param = request.args
-    key = param['key'] if 'key' in param else ''
-    page = int(param['page']) if 'page' in param else 1
-    size = int(param['size']) if 'size' in param else 10
-    cache = Cache()
-    coupon = cache.get(key=key, page=page, size=size)
-    return jsonify(coupon)
+	param = request.args
+	key = param['key'] if 'key' in param else ''
+	page = int(param['page']) if 'page' in param else 1
+	size = int(param['size']) if 'size' in param else 10
+	cache = Cache()
+	coupon = cache.get(key=key, page=page, size=size)
+	return jsonify(coupon)
+
 
 # 淘宝客商品查询
 @api.route('/search')
 @auth.login_required
 def get_item_by_tb():
+	param = request.json
+	spider = Spider()
+	return spider.get_coupon_by_cache()
+	# coupon = spider.getTbkItem(q=param['q'], cat=param['cat'])
+	# return jsonify(coupon)
 
-    param = request.json
-    spider = Spider()
-    return spider.get_coupon_by_cache()
-    # coupon = spider.getTbkItem(q=param['q'], cat=param['cat'])
-    # return jsonify(coupon)
+
+@api.route('/add', methods=['PUT'])
+def create():
+	data = request.json
+	result = Coupon.create(data)
+	return jsonify(result)
+
+@api.route('/all', methods=['PUT'])
+def create_all():
+	data = request.json
+	result = Coupon.create_all(data)
+	return jsonify(result)
