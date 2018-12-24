@@ -95,7 +95,8 @@ class Coupon(Base):
 			'commission_rate',
 			'start_time',
 			'end_time',
-			'seller'
+			'seller',
+			'token'
 		]
 
 	@staticmethod
