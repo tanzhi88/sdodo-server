@@ -23,7 +23,7 @@ class User(Base):
 
 	@property
 	def avatar_path(self):
-		return current_app.config['DOMAIN_STATIC'] + '/avatar/' + self.avatar
+		return current_app.config['DOMAIN_STATIC'] + 'avatar/' + self.avatar
 
 	@property
 	def password(self):
