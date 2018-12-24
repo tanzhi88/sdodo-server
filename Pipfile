@@ -15,6 +15,7 @@ redis = "==3.0.0"
 apscheduler = "*"
 qrcode = "*"
 pillow = "*"
+urllib3 = "==1.23"
 
 [dev-packages]
 
