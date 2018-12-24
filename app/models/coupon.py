@@ -48,6 +48,8 @@ class Coupon(Base):
 	volume = Column(Integer, nullable=False)
 	# 商品主图
 	pict_url_id = Column(Integer, ForeignKey('images.id'), nullable=False)
+	# 宣传图片
+	publicize_img_id = Column(Integer, ForeignKey('images.id'))
 	# 淘口令
 	token = Column(String(64), nullable=False)
 	# 商品详情页链接地址
@@ -67,6 +69,7 @@ class Coupon(Base):
 	# 关联images模型
 	pict_url = relationship('Images', foreign_keys=[pict_url_id])
 	small_pic = relationship('Images', secondary=coupon_images)
+	publicize_img = relationship('Images', foreign_keys=[publicize_img_id])
 	# 关联seller模型
 	seller = relationship('Seller', lazy=True)
 	# 关联description模型
@@ -81,6 +84,7 @@ class Coupon(Base):
 			'id',
 			'title',
 			'pict_url',
+			'publicize_img',
 			'num_iid',
 			'small_pic',
 			'zk_final_price',
@@ -158,6 +162,19 @@ class Coupon(Base):
 				Coupon.create(data)
 			ok_list.append(data['num_iid'])
 		return {'err': err_list, 'ok': ok_list}
+
+	@staticmethod
+	def add_publicize_img(coupon_id, publicize_img_url):
+		"""
+		保存宣传图片
+		:param coupon_id: 优惠卷ID
+		:param publicize_img_url: 图片的保存地址
+		"""
+		coupon = Coupon.query.get_or_404(coupon_id)
+		with db.auto_commit():
+			publicize_img = Images(publicize_img_url, img_from=0)
+			coupon.publicize_img = publicize_img
+			db.session.add(coupon)
 
 	def __repr__(self):
 		return '%s(%r)' % (self.__class__.__name__, self.title)

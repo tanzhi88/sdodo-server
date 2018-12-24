@@ -1,5 +1,4 @@
-from flask import current_app, request, jsonify
-from sqlalchemy.testing import in_
+from flask import current_app, request
 
 from app.libs.ci import CreatedImage
 from app.libs.error_code import Success
@@ -13,13 +12,21 @@ api = Redprint('image')
 @api.route('', methods=['PUT'])
 @auth.login_required
 def created_image():
-    data = request.json
-    coupon = Coupon.query.filter_by(id=data['coupon_id']).first_or_404()
+    """
+    生成图片
+    :return:
+    """
+    img_data = request.json
+    # 1、先确定图保存路径
     static_path = current_app.config['STATIC_PATH']
-    template_path = static_path + 'template/'
-    save_path = static_path + 'img/'
-    ci = CreatedImage(coupon, data['url'], template_path, save_path)
+    file_name = 'img/' + img_data['base']['file']
+    file = static_path + file_name
+    # 2、创建图片
+    ci = CreatedImage(file, img_data['items'], img_data['base']['size'])
+    ci.draw()
     ci.save()
+    # 3、保存入数据库
+    Coupon.add_publicize_img(img_data['base']['id'], file_name)
     return Success()
 
 

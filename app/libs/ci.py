@@ -22,7 +22,7 @@ class CreatedImage:
 		self.size = size
 		self.save_path = save_path
 		self.items = items
-		self.image = Image.new("RGB", self.size, (255, 255, 0))
+		self.image = Image.new("RGB", self.size, (255, 255, 255))
 		self.save_format = save_format
 		self.save_quality = save_quality
 
@@ -66,11 +66,11 @@ class CreatedImage:
 			if item['type'] == 'img':
 				qr = True if 'qr' in item else False
 				local = True if 'local' in item else False
-				self._paste_img(item['url'], item['box'], local, qr)
+				self._paste_img(item['value'], item['box'], local, qr)
 			elif item['type'] == 'text':
 				# 如果设置了文本换行，则先把文本进行整理加入换行符
-				text = self._trim_text(item['text'], item['newline']) if 'newline' in item else item['text']
-				self._draw_text(item['xy'], text, item['size'], item['color'])
+				text = self._trim_text(item['value'], item['newline']) if 'newline' in item else item['value']
+				self._draw_text(item['box'], text, item['size'], tuple(item['color']))
 
 	@staticmethod
 	def _get_img_by_url(url):
@@ -91,6 +91,9 @@ class CreatedImage:
 		:param newline: 设置多少个字符就进行换行
 		:return: 加入换行符的文本
 		"""
+		# 如果没有设置小于或等于0都直接返回
+		if newline <= 0:
+			return text
 		text_list = []
 		# 先获取总长
 		t_len = len(text)
@@ -109,6 +112,10 @@ class CreatedImage:
 
 	# 保存
 	def save(self):
+		path = os.path.dirname(self.save_path)
+		# 当文件夹不存在则创建
+		if os.path.exists(path) is False:
+			os.mkdir(path)
 		self.image.save(self.save_path, format=self.save_format, quality=self.save_quality)
 
 	# 显示图片
@@ -117,7 +124,6 @@ class CreatedImage:
 
 
 if __name__ == '__main__':
-
 	basedir = os.path.abspath(os.path.dirname(__file__))
 	dir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 	static_path = dir + r'\\app\\static\\template\\'

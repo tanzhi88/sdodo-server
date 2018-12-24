@@ -39,8 +39,16 @@ def create():
 	result = Coupon.create(data)
 	return jsonify(result)
 
+
 @api.route('/all', methods=['PUT'])
 def create_all():
 	data = request.json
 	result = Coupon.create_all(data)
 	return jsonify(result)
+
+
+@api.route('/<int:cid>')
+def get_coupon_by_id(cid):
+	# cid = request.args.get('cid', type=int)
+	coupon = Coupon.query.get_or_404(cid)
+	return jsonify(coupon)
