@@ -30,6 +30,11 @@ def get_token():
     return jsonify(t), 201
 
 
+@api.route('', methods=['DELETE'])
+@cross_origin()
+def del_token():
+    return '1'
+
 # 生成令牌
 def generate_auth_token(uid, ac_type, scope=None, expiration=7200):
     """生成令牌"""
